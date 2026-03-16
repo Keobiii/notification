@@ -32,7 +32,50 @@ const requestPermission = async () => {
 
 };
 
-// show notification
+// =============================
+// TAB TITLE NOTIFICATION
+// =============================
+
+let originalTitle = document.title;
+let tabInterval;
+
+const startTabNotification = (message) => {
+
+  if (tabInterval) return; // prevent duplicates
+
+  tabInterval = setInterval(() => {
+
+    document.title =
+      document.title === originalTitle
+        ? message
+        : originalTitle;
+
+  }, 1000);
+
+};
+
+const stopTabNotification = () => {
+
+  clearInterval(tabInterval);
+  tabInterval = null;
+  document.title = originalTitle;
+
+};
+
+// stop when user returns to tab
+document.addEventListener("visibilitychange", () => {
+
+  if (!document.hidden) {
+    stopTabNotification();
+  }
+
+});
+
+
+// =============================
+// SHOW DESKTOP NOTIFICATION
+// =============================
+
 const showNotification = async (options) => {
 
   const registration = await navigator.serviceWorker.ready;
@@ -45,6 +88,9 @@ const showNotification = async (options) => {
       url: options.url
     }
   });
+
+  // trigger tab notification
+  startTabNotification(`🔔 ${options.title}`);
 
 };
 
@@ -60,7 +106,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await requestPermission();
 
-    // customizable notification
     await showNotification({
       title: "Hello World",
       body: "This is a test notification",
